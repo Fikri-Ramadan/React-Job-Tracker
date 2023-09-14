@@ -4,6 +4,11 @@ const Wrapper = styled.section`
   margin-top: 3rem;
   display: flex;
   justify-content: end;
+  @media (max-width: 992px) {
+    flex-direction: column-reverse;
+    align-items: center;
+    row-gap: 1rem;
+  }
   .prev-btn,
   .next-btn {
     color: var(--primary-500);
