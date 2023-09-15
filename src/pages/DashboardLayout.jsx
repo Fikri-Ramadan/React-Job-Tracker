@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Outlet, redirect, useNavigate, useNavigation } from 'react-router-dom';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Wrapper from '../assets/wrappers/Dashboard';
@@ -37,6 +37,7 @@ const DashboardLayout = ({ isDarkThemeEnabled, queryClient }) => {
 
   const [isShowSidebar, setIsShowSidebar] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(isDarkThemeEnabled);
+  const [isAuthError, setIsAuthError] = useState(false);
 
   const toggleDarkTheme = () => {
     const newDarkTheme = !isDarkTheme;
@@ -55,6 +56,25 @@ const DashboardLayout = ({ isDarkThemeEnabled, queryClient }) => {
     await customFetch.get('/auth/logout');
     navigate('/');
   };
+
+  customFetch.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      if (error?.response?.status === 401) {
+        setIsAuthError(true);
+      }
+
+      return Promise.reject(error);
+    }
+  );
+
+  useEffect(() => {
+    if (!isAuthError) return;
+    logoutUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthError]);
 
   return (
     <DashboardContext.Provider
