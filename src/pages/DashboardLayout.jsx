@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Outlet, redirect, useNavigate, useNavigation } from 'react-router-dom';
 import { createContext, useContext, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -26,7 +27,7 @@ export const loader = async (queryClient) => {
 };
 
 // eslint-disable-next-line react/prop-types
-const DashboardLayout = ({ isDarkThemeEnabled }) => {
+const DashboardLayout = ({ isDarkThemeEnabled, queryClient }) => {
   const { user } = useQuery(userQuery).data;
 
   const navigate = useNavigate();
@@ -50,6 +51,7 @@ const DashboardLayout = ({ isDarkThemeEnabled }) => {
 
   const logoutUser = async () => {
     toast.success('Logging Out...');
+    queryClient.invalidateQueries(['user']);
     await customFetch.get('/auth/logout');
     navigate('/');
   };

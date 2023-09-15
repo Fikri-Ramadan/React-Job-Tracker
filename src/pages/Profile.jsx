@@ -1,28 +1,32 @@
-import { useOutletContext, Form, useNavigation } from 'react-router-dom';
+import { useOutletContext, Form, useNavigation, redirect } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Wrapper from '../assets/wrappers/DashboardFormPage';
 import { FormRow } from '../components';
 import customFetch from '../utils/customFetch';
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const action = async ({ request }) => {
-  const formData = await request.formData();
-  const file = formData.get('avatar');
+export const action =
+  (queryClient) =>
+  async ({ request }) => {
+    const formData = await request.formData();
+    const file = formData.get('avatar');
 
-  if (file && file.size > 500000) {
-    toast.error('Image size too large');
-    return null;
-  }
+    if (file && file.size > 500000) {
+      toast.error('Image size too large');
+      return null;
+    }
 
-  try {
-    await customFetch.put('/user/update-user', formData);
-    toast.success('User Update Successfully');
-  } catch (error) {
-    toast.error(error?.response?.data?.message);
-  }
+    try {
+      await customFetch.put('/user/update-user', formData);
+      queryClient.invalidateQueries(['user']);
+      toast.success('User Update Successfully');
+      return redirect('/dashboard');
+    } catch (error) {
+      toast.error(error?.response?.data?.message);
+      return null;
+    }
 
-  return null;
-};
+  };
 
 const Profile = () => {
   const { user } = useOutletContext();
@@ -31,7 +35,7 @@ const Profile = () => {
   const isSubmitting = navigation.state === 'submitting';
   return (
     <Wrapper>
-      <Form method="post" className="form" encType='multipart/form-data'>
+      <Form method="post" className="form" encType="multipart/form-data">
         <h4 className="form-title">Profile</h4>
         <div className="form-center">
           <div className="form-row">
@@ -64,7 +68,11 @@ const Profile = () => {
             labelText="Email"
             defaultValue={email}
           />
-          <button type="submit" className="btn btn-block form-btn" disabled={isSubmitting}>
+          <button
+            type="submit"
+            className="btn btn-block form-btn"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </div>
