@@ -6,13 +6,14 @@ import customFetch from '../utils/customFetch';
 import { JOB_STATUS, JOB_TYPE } from '../utils/constant';
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const action = async ({ request }) => {
+export const action = (queryClient) => async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
 
   try {
     await customFetch.post('/jobs', data);
     toast.success('Job Added Successfully');
+    await queryClient.invalidateQueries(['jobs']);
     return redirect('all-jobs');
   } catch (error) {
     toast.error(error?.response?.data?.message);

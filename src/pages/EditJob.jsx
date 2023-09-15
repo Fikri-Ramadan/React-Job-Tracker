@@ -17,19 +17,22 @@ export const loader = async ({ params }) => {
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const action = async ({request, params}) => {
-  const formData = await request.formData();
-  const data = Object.fromEntries(formData);
+export const action =
+  (queryClient) =>
+  async ({ request, params }) => {
+    const formData = await request.formData();
+    const data = Object.fromEntries(formData);
 
-  try {
-    await customFetch.put(`/jobs/${params.id}`, data);
-    toast.success('Job Edit Successfully');
-    return redirect('/dashboard/all-jobs');
-  } catch (error) {
-    toast.error(error?.response?.data?.message);
-    return error;
-  }
-}  
+    try {
+      await customFetch.put(`/jobs/${params.id}`, data);
+      toast.success('Job Edit Successfully');
+      await queryClient.invalidateQueries(['jobs']);
+      return redirect('/dashboard/all-jobs');
+    } catch (error) {
+      toast.error(error?.response?.data?.message);
+      return error;
+    }
+  };
 
 const EditJob = () => {
   const navigation = useNavigation();
