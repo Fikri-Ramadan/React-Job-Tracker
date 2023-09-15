@@ -1,20 +1,33 @@
 import { Form, useNavigation, redirect, useLoaderData } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Wrapper from '../assets/wrappers/DashboardFormPage';
 import { FormRow, SelectRow } from '../components';
 import { JOB_STATUS, JOB_TYPE } from '../utils/constant';
 import customFetch from '../utils/customFetch';
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const loader = async ({ params }) => {
-  try {
-    const { data } = await customFetch.get(`/jobs/${params.id}`);
-    return data;
-  } catch (error) {
-    toast.error(error?.response?.data?.message);
-    return redirect('/dashboard/all-jobs');
-  }
+const singleJobQuery = (id) => {
+  return {
+    queryKey: ['job', id],
+    queryFn: async () => {
+      const { data } = await customFetch.get(`/jobs/${id}`);
+      return data;
+    },
+  };
 };
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const loader =
+  (queryClient) =>
+  async ({ params }) => {
+    try {
+      await queryClient.ensureQueryData(singleJobQuery(params.id));
+      return params.id;
+    } catch (error) {
+      toast.error(error?.response?.data?.message);
+      return redirect('/dashboard/all-jobs');
+    }
+  };
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const action =
@@ -38,7 +51,12 @@ const EditJob = () => {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
-  const { data } = useLoaderData();
+  const id = useLoaderData();
+
+  const {
+    data: { data: job },
+  } = useQuery(singleJobQuery(id));
+
   return (
     <Wrapper>
       <Form method="POST" className="form">
@@ -48,31 +66,31 @@ const EditJob = () => {
             type="text"
             name="position"
             labelText="Position"
-            defaultValue={data.position}
+            defaultValue={job.position}
           />
           <FormRow
             type="text"
             name="company"
             labelText="Company"
-            defaultValue={data.company}
+            defaultValue={job.company}
           />
           <FormRow
             type="text"
             name="jobLocation"
             labelText="Job Location"
-            defaultValue={data.jobLocation}
+            defaultValue={job.jobLocation}
           />
           <SelectRow
             name="jobStatus"
             label="Job Status"
             list={Object.values(JOB_STATUS)}
-            defaultValue={data.jobStatus}
+            defaultValue={job.jobStatus}
           />
           <SelectRow
             name="jobType"
             label="Job Type"
             list={Object.values(JOB_TYPE)}
-            defaultValue={data.jobType}
+            defaultValue={job.jobType}
           />
           <button
             type="submit"
