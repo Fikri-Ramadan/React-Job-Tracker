@@ -1,11 +1,9 @@
 import axios from 'axios';
 
-axios.defaults.withCredentials = true;
+const URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const customFetch = axios.create({
-  // baseURL: 'https://fikri-jobtracker-api.vercel.app/api/v1',
-  baseURL: 'https://fikri-jobtracker.vercel.app/api/v1',
-  // baseURL: 'http://localhost:3000/api/v1',
+  baseURL: `${URL}/api/v1`,
   withCredentials: true,
 });
 
